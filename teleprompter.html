@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Teleprompter</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-black text-white">
+
+<div id="app"></div>
+
+<script type="module">
+import React, { useEffect, useRef, useState } from 'https://esm.sh/react'
+import ReactDOM from 'https://esm.sh/react-dom/client'
+
+function TeleprompterApp() {
+  const [isRunning, setIsRunning] = useState(false)
+  const [speed, setSpeed] = useState(5)
+  const [fontSize, setFontSize] = useState(42)
+
+  const [text, setText] = useState(`Neverland merita una guida VERA…
+
+Non qualcuno che governa per conto di altri.
+
+Una città di ventimila persone…
+ha il diritto di scegliere…
+chi la guida DAVVERO.
+
+Ed è questo…
+quello che si decide…
+il ventiquattro e venticinque maggio.`)
+
+  const contentRef = useRef(null)
+  const animationRef = useRef(null)
+  const positionRef = useRef(0)
+
+  const startTeleprompter = () => {
+    stopTeleprompter()
+    positionRef.current = window.innerHeight
+
+    if (contentRef.current) {
+      contentRef.current.style.transform =
+        `translateY(${positionRef.current}px)`
+    }
+
+    setIsRunning(true)
+  }
+
+  const stopTeleprompter = () => {
+    if (animationRef.current) {
+      cancelAnimationFrame(animationRef.current)
+      animationRef.current = null
+    }
+
+    setIsRunning(false)
+  }
+
+  useEffect(() => {
+    if (!isRunning) return
+
+    const animate = () => {
+      const content = contentRef.current
+
+      if (!content) return
+
+      positionRef.current -= speed * 0.5
+
+      content.style.transform =
+        `translateY(${positionRef.current}px)`
+
+      if (positionRef.current < -content.offsetHeight) {
+        stopTeleprompter()
+        return
+      }
+
+      animationRef.current = requestAnimationFrame(animate)
+    }
+
+    animationRef.current = requestAnimationFrame(animate)
+
+    return () => {
+      if (animationRef.current) {
+        cancelAnimationFrame(animationRef.current)
+      }
+    }
+  }, [isRunning, speed])
+
+  return (
+    React.createElement('div', {
+      className: 'min-h-screen bg-black text-white flex flex-col items-center p-6'
+    },
+      React.createElement('div', {
+        className: 'w-full max-w-5xl space-y-6'
+      },
+
+        React.createElement('div', {
+          className: 'text-center space-y-2'
+        },
+          React.createElement('h1', {
+            className: 'text-4xl font-bold'
+          }, 'Teleprompter Video'),
+
+          React.createElement('p', {
+            className: 'text-gray-300 text-lg'
+          }, 'Incolla il testo, premi AVVIA e lascia scorrere il gobbo.')
+        ),
+
+        React.createElement('div', {
+          className: 'bg-zinc-900 rounded-3xl p-6'
+        },
+
+          React.createElement('textarea', {
+            value: text,
+            onChange: (e) => setText(e.target.value),
+            className:
+              'w-full h-56 bg-black text-white rounded-2xl p-4 text-xl'
+          }),
+
+          React.createElement('div', {
+            className: 'grid md:grid-cols-4 gap-4 mt-6 items-end'
+          },
+
+            React.createElement('div', null,
+              React.createElement('label', {
+                className: 'block text-sm mb-2'
+              }, 'Velocità'),
+
+              React.createElement('input', {
+                type: 'range',
+                min: 1,
+                max: 20,
+                value: speed,
+                onChange: (e) => setSpeed(Number(e.target.value)),
+                className: 'w-full'
+              })
+            ),
+
+            React.createElement('div', null,
+              React.createElement('label', {
+                className: 'block text-sm mb-2'
+              }, 'Dimensione testo'),
+
+              React.createElement('input', {
+                type: 'range',
+                min: 24,
+                max: 72,
+                value: fontSize,
+                onChange: (e) => setFontSize(Number(e.target.value)),
+                className: 'w-full'
+              })
+            ),
+
+            React.createElement('button', {
+              onClick: startTeleprompter,
+              className:
+                'bg-white text-black font-bold rounded-2xl px-4 py-3'
+            }, 'AVVIA'),
+
+            React.createElement('button', {
+              onClick: stopTeleprompter,
+              className:
+                'bg-zinc-700 text-white font-bold rounded-2xl px-4 py-3'
+            }, 'STOP')
+          )
+        ),
+
+        React.createElement('div', {
+          className:
+            'relative h-[70vh] overflow-hidden bg-black rounded-3xl border border-zinc-800'
+        },
+
+          React.createElement('div', {
+            ref: contentRef,
+            className:
+              'absolute w-full px-10 whitespace-pre-line text-center font-semibold leading-[1.8]',
+            style: {
+              transform: `translateY(${positionRef.current}px)`,
+              fontSize: `${fontSize}px`
+            }
+          }, text),
+
+          React.createElement('div', {
+            className:
+              'absolute top-1/2 left-0 right-0 border-t-2 border-red-500 opacity-70'
+          })
+        )
+      )
+    )
+  )
+}
+
+ReactDOM.createRoot(document.getElementById('app'))
+  .render(React.createElement(TeleprompterApp))
+</script>
+
+</body>
+</html>
